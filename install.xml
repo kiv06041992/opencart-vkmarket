@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+   <name>Обработчик вызова модального окна, Кнопка вызова модального окна, Модальное окно, Отправка данных о товаре для экспорта, Кнопка для экспорта нескольких позиций</name>
+   <code>VKM</code>
+   <version>1.0</version>
+   <author>VKM</author>
+   <link />
+   <file path="admin/view/template/catalog/product_list.tpl">
+      <operation>
+         <search><![CDATA[$('#button-filter').on('click', function()]]></search>
+         <add position="before"><![CDATA[$('button[data-target="#VKMExportMarket"').click(function() {
+ productID = $(this).attr('produc_id');
+ if (!productID) {
+	$.each($('input[name="selected[]"]:checked'), function (k,v) {
+		productID += $(v).val() + ',';
+	});
+}
+if (!productID) {
+	alert("Выберите товар для экспорта");
+	return false;
+}
+
+  $.post('index.php?route=module/vkm/getExportInterface&token=<?php echo $token; ?>', {product_id: productID}, function(data) {
+    $("#VKMExportMarket.modal .modal-body").html(data);
+  });
+
+});]]></add>
+      </operation>
+   </file>
+   <file path="admin/view/template/catalog/product_list.tpl">
+      <operation>
+         <search><![CDATA[<a href="<?php echo $product['edit']; ?>" data-toggle="tooltip" title="<?php echo $button_edit; ?>" class="btn btn-primary"><i class="fa fa-pencil"></i></a>]]></search>
+         <add position="replace"><![CDATA[<?php if(isset($vkm_log_export[$product['product_id']]) AND count($vkm_log_export[$product['product_id']]) == 1) {echo '<span><a target="_blank" href="https://vk.com/market-'.$vkm_log_export[$product['product_id']][0]['vk_market_id'].'?w=product-'.$vkm_log_export[$product['product_id']][0]['vk_market_id'].'_'.$vkm_log_export[$product['product_id']][0]['vk_product_id'].'">'.date('H:i d.m.Y', strtotime($vkm_log_export[$product['product_id']][0]['date_export'])).'</a> &nbsp; ('.$VKMSettings['vkm_group_name'][array_search($product['product_id'][0]['vk_market_id'], $VKMSettings['vkm_group_id'])].') &nbsp;<span style="color:red; cursor: pointer;font-weight:bold;" class="VKMDelete" log_id="'.$vkm_log_export[$product['product_id']][0]['id'].'">X</span></span>';} else if(isset($vkm_log_export[$product['product_id']]) AND count($vkm_log_export[$product['product_id']]) > 1) { echo '<span style="display: inline-block;">'; foreach ($vkm_log_export[$product['product_id']] as $v) {echo '<span><a target="_blank" href="https://vk.com/market-'.$v['vk_market_id'].'?w=product-'.$v['vk_market_id'].'_'.$v['vk_product_id'].'">'.date('H:i d.m.Y', strtotime($v['date_export'])).'</a>&nbsp; ('.$VKMSettings['vkm_group_name'][array_search($v['vk_market_id'], $VKMSettings['vkm_group_id'])].') &nbsp;<span style="color:red; cursor: pointer;font-weight:bold;" class="VKMDelete" log_id="'.$v['id'].'">X</span></span><br>';} echo '</span>';}?> <button produc_id="<?php echo $product['product_id']; ?>" type="button" class="btn btn-primary" data-toggle="modal" title="VKMExportMarket" data-target="#VKMExportMarket"><i class="fa fa-copy"></i></button> <a href="<?php echo $product['edit']; ?>" data-toggle="tooltip" title="<?php echo $button_edit; ?>" class="btn btn-primary"><i class="fa fa-pencil"></i></a>]]></add>
+      </operation>
+   </file>
+   <file path="admin/view/template/catalog/product_list.tpl">
+      <operation>
+         <search><![CDATA[<?php echo $button_filter; ?></button>]]></search>
+         <add position="after"><![CDATA[<button produc_id="" type="button" class="btn btn-primary" data-toggle="modal" title="VKMExportMarket" data-target="#VKMExportMarket"><i class="fa fa-copy"></i></button>]]></add>
+      </operation>
+   </file>
+   <file path="admin/view/template/catalog/product_list.tpl">
+      <operation>
+         <search index="1"><![CDATA[<script type="text/javascript">]]></search>
+         <add position="before"><![CDATA[<div class="modal fade" id="VKMExportMarket" tabindex="-1" role="dialog" aria-labelledby="VKMExportMarket">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">X</span></button>
+          <h4 class="modal-title" id="myModalLabel">VKMExportMarket</h4>
+        </div>
+        <div class="modal-body">
+          <center>
+            <img src="/catalog/view/javascript/jquery/owl-carousel/AjaxLoader.gif">
+          </center>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+          <button type="submit" form="export" class="btn btn-primary">Экспорт</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<script>$(".VKMDelete").click(function() {
+	obj = $(this);
+	if (confirm('Удалить?')) {
+		$.post('/admin/index.php?route=module/vkm/delete&token=<?php echo $token; ?>', {id: $(obj).attr('log_id')}, function(d) {
+			$(obj).parent().remove();
+	});
+}
+});</script>]]></add>
+      </operation>
+   </file>
+<file path="admin/controller/catalog/product.php">
+      <operation>
+         <search><![CDATA[if (isset($this->session->data['success'])) {]]></search>
+         <add position="before"><![CDATA[if (isset($this->session->data['warning'])) {
+				$data['error_warning'] = ($data['error_warning'])?'<br>':'';
+				$data['error_warning'] .= $this->session->data['warning'];
+				unset($this->session->data['warning']);
+			}]]></add>
+      </operation>
+   </file>
+<file path="admin/controller/catalog/product.php">
+      <operation>
+         <search><![CDATA[$data['products'][] = array(]]></search>
+         <add position="before"><![CDATA[$arProductID[$result['product_id']] = $result['product_id'];]]></add>
+      </operation>
+   </file>
+<file path="admin/controller/catalog/product.php">
+      <operation>
+         <search><![CDATA[$data['heading_title'] = $this->language->get('heading_title');]]></search>
+         <add position="before"><![CDATA[if ($arProductID) {$r = $this->db->query("SELECT * FROM `" . DB_PREFIX . "vkm_log_export` WHERE `oc_product_id` IN (".implode(',', $arProductID).")"); 
+
+	foreach ($r->rows as $v) {
+$data['vkm_log_export'][$v['oc_product_id']][] = $v;
+}
+}]]>
+	$this->load->model('setting/setting');
+	$data['VKMSettings'] =  $this->model_setting_setting->getSetting('vkm');
+	
+</add>
+</operation>
+   </file>
+</modification>
