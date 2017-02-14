@@ -31,7 +31,7 @@
 							VKAPPID
 						</label>
 						<div class="col-sm-10">
-							<input name="vkm_app_id" value="<?php echo (isset($vkm_app_id))?$vkm_app_id:'';?>" class="form-control">
+							<input name="vkm_app_id" placeholder="5874433" value="<?php echo (isset($vkm_app_id))?$vkm_app_id:'';?>" class="form-control">
 						</div>
 					</div>
 					<div class="form-group">
@@ -39,7 +39,7 @@
 							VKAPISecret
 						</label>
 						<div class="col-sm-10">
-							<input name="vkm_api_secret" value="<?php echo (isset($vkm_api_secret))?$vkm_api_secret:'';?>" class="form-control">
+							<input name="vkm_api_secret" placeholder="V0fuABf33SenDry98dOm" value="<?php echo (isset($vkm_api_secret))?$vkm_api_secret:'';?>" class="form-control">
 						</div>
 					</div>
 					<div class="form-group">
@@ -47,7 +47,7 @@
 							VKAccessToken
 						</label>
 						<div class="col-sm-10">
-							<input name="vkm_access_token" value="<?php echo (isset($vkm_access_token))?$vkm_access_token:'';?>" class="form-control">
+							<input name="vkm_access_token" placeholder="bm1ca449383a951e5ea55aff0bd82f721e3467d9q6037a64601ad1c110b02bf5501c0fcaa39137743fe9b" value="<?php echo (isset($vkm_access_token))?$vkm_access_token:'';?>" class="form-control">
 						</div>
 					</div>
 					<div class="form-group ">
@@ -60,7 +60,7 @@
 								<input name="vkm_group_name[]" value="<?php echo $v;?>" class="form-control"><br>
 							<?php }
 							}?>
-							<input name="vkm_group_name[]" value="" class="form-control">
+							<input name="vkm_group_name[]" placeholder="VK API Change Log" class="form-control">
 						</div>
 						<label class="col-sm-1 control-label" >
 							VKGroupID
@@ -71,7 +71,7 @@
 								<input name="vkm_group_id[]" value="<?php echo $v;?>" class="form-control"><br>
 							<?php }
 							} ?>
-							<input name="vkm_group_id[]" value="" class="form-control">
+							<input name="vkm_group_id[]" placeholder="28551727" class="form-control">
 						</div>
 						
 					</div>
