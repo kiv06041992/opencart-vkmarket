@@ -30,7 +30,26 @@ if (!productID) {
    <file path="admin/view/template/catalog/product_list.tpl">
       <operation>
          <search><![CDATA[<a href="<?php echo $product['edit']; ?>" data-toggle="tooltip" title="<?php echo $button_edit; ?>" class="btn btn-primary"><i class="fa fa-pencil"></i></a>]]></search>
-         <add position="replace"><![CDATA[<?php if(isset($vkm_log_export[$product['product_id']]) AND count($vkm_log_export[$product['product_id']]) == 1) {echo '<span><a target="_blank" href="https://vk.com/market-'.$vkm_log_export[$product['product_id']][0]['vk_market_id'].'?w=product-'.$vkm_log_export[$product['product_id']][0]['vk_market_id'].'_'.$vkm_log_export[$product['product_id']][0]['vk_product_id'].'">'.date('H:i d.m.Y', strtotime($vkm_log_export[$product['product_id']][0]['date_export'])).'</a> &nbsp; ('.$VKMSettings['vkm_group_name'][array_search($product['product_id'][0]['vk_market_id'], $VKMSettings['vkm_group_id'])].') &nbsp;<span style="color:red; cursor: pointer;font-weight:bold;" class="VKMDelete" log_id="'.$vkm_log_export[$product['product_id']][0]['id'].'">X</span></span>';} else if(isset($vkm_log_export[$product['product_id']]) AND count($vkm_log_export[$product['product_id']]) > 1) { echo '<span style="display: inline-block;">'; foreach ($vkm_log_export[$product['product_id']] as $v) {echo '<span><a target="_blank" href="https://vk.com/market-'.$v['vk_market_id'].'?w=product-'.$v['vk_market_id'].'_'.$v['vk_product_id'].'">'.date('H:i d.m.Y', strtotime($v['date_export'])).'</a>&nbsp; ('.$VKMSettings['vkm_group_name'][array_search($v['vk_market_id'], $VKMSettings['vkm_group_id'])].') &nbsp;<span style="color:red; cursor: pointer;font-weight:bold;" class="VKMDelete" log_id="'.$v['id'].'">X</span></span><br>';} echo '</span>';}?> <button produc_id="<?php echo $product['product_id']; ?>" type="button" class="btn btn-primary" data-toggle="modal" title="VKMExportMarket" data-target="#VKMExportMarket"><i class="fa fa-copy"></i></button> <a href="<?php echo $product['edit']; ?>" data-toggle="tooltip" title="<?php echo $button_edit; ?>" class="btn btn-primary"><i class="fa fa-pencil"></i></a>]]></add>
+         <add position="replace"><![CDATA[
+		 <?php 
+			if (isset($vkm_log_export[$product['product_id']]) AND count($vkm_log_export[$product['product_id']]) == 1) {
+			  echo '<span><a target="_blank" href="https://vk.com/market-' . $vkm_log_export[$product['product_id']][0]['vk_market_id'] . '?w=product-' . $vkm_log_export[$product['product_id']][0]['vk_market_id'] . '_' . $vkm_log_export[$product['product_id']][0]['vk_product_id'] . '">' . 
+			  date('H:i d.m.Y', strtotime($vkm_log_export[$product['product_id']][0]['date_export'])) . '</a> &nbsp; (' . $VKMSettings['vkm_group_name'][array_search($product['product_id'], $VKMSettings['vkm_group_id'])] . ') &nbsp;<span style="color:red; cursor: pointer;font-weight:bold;" class="VKMDelete" log_id="' . $vkm_log_export[$product['product_id']][0]['id'] . '">X</span></span>';
+			} else if (isset($vkm_log_export[$product['product_id']]) AND count($vkm_log_export[$product['product_id']]) > 1) {
+			  echo '<span style="display: inline-block;">';
+			  foreach ($vkm_log_export[$product['product_id']] as $v) {
+				echo '<span><a target="_blank" href="https://vk.com/market-' . $v['vk_market_id'] . '?w=product-' . $v['vk_market_id'] . '_' . $v['vk_product_id'] . '">' . date('H:i d.m.Y', strtotime($v['date_export'])) . '</a>&nbsp; (' . $VKMSettings['vkm_group_name'][array_search($v['vk_market_id'], $VKMSettings['vkm_group_id'])] . ') &nbsp;<span style="color:red; cursor: pointer;font-weight:bold;" class="VKMDelete" log_id="' . $v['id'] . '">X</span></span><br>';
+			  }
+			  echo '</span>';
+			}
+			?> <button produc_id="<?php
+			echo $product['product_id'];
+			?>" type="button" class="btn btn-primary" data-toggle="modal" title="VKMExportMarket" data-target="#VKMExportMarket"><i class="fa fa-copy"></i></button> <a href="<?php
+			echo $product['edit'];
+			?>" data-toggle="tooltip" title="<?php
+			echo $button_edit;
+			?>" class="btn btn-primary"><i class="fa fa-pencil"></i></a>
+		 ]]></add>
       </operation>
    </file>
    <file path="admin/view/template/catalog/product_list.tpl">
