@@ -184,12 +184,16 @@
 			}
 		}
 	
-		public function getAlbums () {
+		public function getAlbums ($marketID) {
+			if (!$marketID) {
+				$marketID = $this->marketID;
+			}
+			
 			$r = $this->api('market.getAlbums',array(
-						'owner_id'	=> '-'.$this->marketID,
+						'owner_id'	=> '-'.$marketID,
 						'count' 	=> 100), 'array', 'post');
 				
-			return $r['response'];
+			return (isset($r['response']['items']))?$r['response']['items']:'';
 		}
 	}
 	

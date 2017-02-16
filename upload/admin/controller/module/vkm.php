@@ -248,7 +248,7 @@ class ControllerModuleVKM extends Controller
 					$this->session->data['warning'] .= 'Не удалось экспортировать товар. <a href="/admin/index.php?route=catalog/product/edit&token=' . $this->session->data['token'] . '&product_id='.$productID.'">' . $queryData['name'][$k] . ' (' . $productID . ')</a><br>';
 				}
 			}
-			$this->response->redirect($this->url->link('catalog/product', 'token=' . $this->session->data['token'], true));
+			$this->response->redirect($_SERVER['HTTP_REFERER']);
 		}
 		
 		private function getHTMLSelectOwner($name, $firstClear) {
@@ -284,10 +284,11 @@ class ControllerModuleVKM extends Controller
 			}
 			$htmlSelectCategory .= '</select>';
 			
-			
-			
-			
 			return $htmlSelectCategory;	
+		}
+		public function getHTMLSelectAlbums($name = 't', $firstClear = 't', $marketID = '123159083') {
+			$VKAPI = $this->getObjectAPIVK();
+			return $VKAPI->getAlbums($marketID);
 		}
 		
 		public function getObjectAPIVK() {
