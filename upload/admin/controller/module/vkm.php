@@ -204,6 +204,16 @@ class ControllerModuleVKM extends Controller
 					$IDMarket = $queryData['main_owner_id'];
 				}
 				
+				$arIDMarketIDAlbum = '';
+				$IDAlbum = '';
+				$arIDMarketIDAlbum = explode('_', $IDMarket);
+				
+				if (count($arIDMarketIDAlbum) > 1) {
+					$IDMarket 	= $arIDMarketIDAlbum[0];
+					$IDAlbum 	= $arIDMarketIDAlbum[1];
+				}
+				
+				
 				if ($queryData['category_id'][$k]) {
 					$IDCategory = $queryData['category_id'][$k];
 				} else {
@@ -223,6 +233,8 @@ class ControllerModuleVKM extends Controller
 									'photos' => $arProductPhotos);
 				$r = $VKAPI->add($dataExport);
 				
+				//надо добавить в лог 
+				$VKAPI->addToAlbum($IDMarket, $r, $IDAlbum);
 				
 				
 				if ($r) {
@@ -251,15 +263,27 @@ class ControllerModuleVKM extends Controller
 			$this->response->redirect($_SERVER['HTTP_REFERER']);
 		}
 		
-		private function getHTMLSelectOwner($name, $firstClear) {
+		private function getHTMLSelectOwner($name, $firstClear, $getAlbums = true) {
+			$VKAPI = $this->getObjectAPIVK();
+			
 			$dataSettings = $this->getSettings();
-
 			$htmlSelectOwner = '<select class="form-control" name="'.$name.'">';
 			if ($firstClear) {
 				$htmlSelectOwner .= '<option></option>';
 			}			
 			foreach ($dataSettings['vkm_group_name'] as $k=>$v) {
+				$arAlbums = '';
+				if ($getAlbums) {
+					$arAlbums = $VKAPI->getAlbums($dataSettings['vkm_group_id'][$k]);
+					
+				}
 				$htmlSelectOwner .= '<option value="'.$dataSettings['vkm_group_id'][$k].'">'.$v.'</option>';
+				foreach ($arAlbums as $album) {
+					// $album['id'] == 0 //видимо, главная категория. В документации информацию не увидел
+					if ($album['id']) { 
+						$htmlSelectOwner .= '<option value="'.$dataSettings['vkm_group_id'][$k].'_'.$album['id'].'"> - '.$album['title'].'</option>';
+					}
+				}
 			}
 			$htmlSelectOwner .= '</select>';
 			return $htmlSelectOwner;	
@@ -286,10 +310,10 @@ class ControllerModuleVKM extends Controller
 			
 			return $htmlSelectCategory;	
 		}
-		public function getHTMLSelectAlbums($name = 't', $firstClear = 't', $marketID = '123159083') {
+		/*public function getAlbums($name = 't', $firstClear = 't', $marketID = '123159083') {
 			$VKAPI = $this->getObjectAPIVK();
 			return $VKAPI->getAlbums($marketID);
-		}
+		}*/
 		
 		public function getObjectAPIVK() {
 			$dataSettings = $this->getSettings();

@@ -195,11 +195,10 @@
 				
 			return (isset($r['response']['items']))?$r['response']['items']:'';
 		}
-	}
-	
-	
-	
-			
-	
-	
-	
+		
+		public function addToAlbum($ownerID, $itemID, $albumIDs) {
+			$r = $this->api('market.addToAlbum',array(
+						'owner_id'	=> '-'.$ownerID,
+						'item_id' 	=> $itemID,
+						'album_ids' => $albumIDs), 'array', 'post');
+		}
