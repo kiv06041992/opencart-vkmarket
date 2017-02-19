@@ -6,7 +6,7 @@ class ControllerModuleVKM extends Controller
         private $arLogs = array();
 		
 		public function index() {
-			
+			$verOver23 = VERSION >= 2.3;
 			$this->load->language('module/vkm');
 			$this->document->setTitle($this->language->get('heading_title'));
 			$this->load->model('setting/setting');
@@ -22,7 +22,7 @@ class ControllerModuleVKM extends Controller
 						unset($this->request->post['vkm_group_id'][$k]);
 					}
 					
-					if (!$this->request->post['vkm_group_id'][$k]) {
+					if (!isset($this->request->post['vkm_group_id'][$k])) {
 						unset($this->request->post['vkm_group_id'][$k]);
 						unset($this->request->post['vkm_group_name'][$k]);
 					}
@@ -32,7 +32,7 @@ class ControllerModuleVKM extends Controller
 	
 				$this->session->data['success'] = $this->language->get('text_success');
 	
-				$this->response->redirect($this->url->link('extension/module', 'token=' . $data['token'], true));
+				$this->response->redirect($this->url->link(($verOver23)?'extension/extension':'extension/module', 'token=' . $data['token'], true));
 			}
 			
 			$data['heading_title'] = $this->language->get('heading_title');
@@ -59,16 +59,16 @@ class ControllerModuleVKM extends Controller
 	
 			$data['breadcrumbs'][] = array(
 				'text' => $this->language->get('text_module'),
-				'href' => $this->url->link('extension/module', 'token=' . $data['token'], true)
+				'href' => $this->url->link(($verOver23)?'extension/extension':'extension/module', 'token=' . $data['token'], true)
 			);
 	
 			$data['breadcrumbs'][] = array(
 				'text' => $this->language->get('heading_title'),
-				'href' => $this->url->link('module/vkm', 'token=' . $data['token'], true)
+				'href' => $this->url->link(($verOver23)?'extension/module/vkm':'module/vkm', 'token=' . $data['token'], true)
 			);
 	
-			$data['action'] = $this->url->link('module/vkm', 'token=' . $data['token'], true);
-			$data['cancel'] = $this->url->link('extension/module', 'token=' . $data['token'], true);
+			$data['action'] = $this->url->link(($verOver23)?'extension/module/vkm':'module/vkm', 'token=' . $data['token'], true);
+			$data['cancel'] = $this->url->link(($verOver23)?'extension/extension':'extension/module', 'token=' . $data['token'], true);
 
 			$data['header'] = $this->load->controller('common/header');
 			$data['column_left'] = $this->load->controller('common/column_left');
@@ -80,7 +80,7 @@ class ControllerModuleVKM extends Controller
 		
 		
 		protected function validate() {
-			if (!$this->user->hasPermission('modify', 'module/vkm')) {
+			if (!$this->user->hasPermission('modify', (VERSION >= 2.3)?'extension/module/vkm':'module/vkm')) {
 				$this->error['warning'] = $this->language->get('error_permission');
 			}
 	
@@ -359,4 +359,8 @@ class ControllerModuleVKM extends Controller
 				echo 1;
 			}
 		}
+	}
+	
+	if (VERSION >= 2.3) {
+		class_alias('ControllerModuleVKM', 'ControllerExtensionModuleVKM');
 	}

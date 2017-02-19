@@ -3,7 +3,7 @@
 	$this->load->model('user/user_group');
 	$this->model_user_user_group->addPermission($this->user->getGroupId(), 'access', 'module/vkm');
 	$this->model_user_user_group->addPermission($this->user->getGroupId(), 'modify', 'module/vkm');
-	
+	$DS = DIRECTORY_SEPARATOR;
 	$r = $this->db->query("SHOW TABLES LIKE '" . DB_PREFIX . "vkm_log_export'");
 	if (!$r->num_rows) {
 		createrTableLog($this, DB_PREFIX);
@@ -25,8 +25,14 @@
 		
 		$this->db->query('DROP TABLE `' . $tablePref . 'vkm_log_export`;');
 	}
-		
 	
+	if (VERSION >= 2.3 AND file_exists($_SERVER['DOCUMENT_ROOT'] . $DS . 'admin' . $DS . 'controller' . $DS . 'module' . $DS . 'vkm.php')) {
+		if (copy($_SERVER['DOCUMENT_ROOT'] . $DS . 'admin' . $DS . 'controller' . $DS . 'module' . $DS . 'vkm.php',
+			$_SERVER['DOCUMENT_ROOT'] . $DS . 'admin' . $DS . 'controller' . $DS . 'extension' . $DS . 'module' . $DS . 'vkm.php')) {
+			unlink($_SERVER['DOCUMENT_ROOT'] . $DS . 'admin' . $DS . 'controller' . $DS . 'module' . $DS . 'vkm.php');
+			rmdir($_SERVER['DOCUMENT_ROOT'] . $DS . 'admin' . $DS . 'controller' . $DS . 'module');
+		}
+	}
 	function createrTableLog($obj, $pref)  {
 		$obj->db->query('CREATE TABLE `' . $pref . 'vkm_log_export` (
 			`id` INT(11) NOT NULL AUTO_INCREMENT,
