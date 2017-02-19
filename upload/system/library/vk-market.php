@@ -202,3 +202,4 @@
 						'item_id' 	=> $itemID,
 						'album_ids' => $albumIDs), 'array', 'post');
 		}
+	}

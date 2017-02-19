@@ -245,7 +245,8 @@ class ControllerModuleVKM extends Controller
 																					`vk_category_id`,
 																					`result`,
 																					`date_export`,
-																					`date_create`)
+																					`date_create`,
+																					`vk_album_ids`)
 																					VALUES
 																					('{$productID}',
 																					'{$r}',
@@ -253,7 +254,8 @@ class ControllerModuleVKM extends Controller
 																					'{$IDCategory}',
 																					'1',
 																					NOW(),
-																					NOW())");
+																					NOW(),
+																					'{$IDAlbum}')");
 					
 					$this->session->data['success'] .= 'Товар экспортирован. <a href="https://vk.com/club'.$VKAPI->marketID.'?w=product-'.$VKAPI->marketID.'_'.$r.'">' . $queryData['name'][$k] . ' (' . $r . ')</a><br>';
 				} else {
