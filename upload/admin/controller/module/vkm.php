@@ -109,7 +109,7 @@ class ControllerModuleVKM extends Controller
 				$arProductsID = explode(',',$queryData['product_id']);
 				
 				$this->load->model('catalog/product');
-				$html = '<form method="post" action="'.$this->url->link('module/vkm/exportProduct', 'token=' . $this->session->data['token'], true).'" id="export">';
+				$html = '<form method="post" action="'.$this->url->link((VERSION >= 2.3)?'extension/module/vkm/exportProduct':'module/vkm/exportProduct', 'token=' . $this->session->data['token'], true).'" id="export">';
 				if (count($arProductsID) > 1) {
 					$html .= '
 <h3>Общие настройки</h3>

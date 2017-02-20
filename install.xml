@@ -20,7 +20,7 @@ if (!productID) {
 	return false;
 }
 
-  $.post('index.php?route=module/vkm/getExportInterface&token=<?php echo $token; ?>', {product_id: productID}, function(data) {
+  $.post('index.php?route=<?php echo (VERSION >= 2.3)?'extension/module/vkm/getExportInterface':'module/vkm/getExportInterface';?>&token=<?php echo $token; ?>', {product_id: productID}, function(data) {
     $("#VKMExportMarket.modal .modal-body").html(data);
   });
 
@@ -91,7 +91,7 @@ if (!productID) {
 <script>$(".VKMDelete").click(function() {
 	obj = $(this);
 	if (confirm('Удалить?')) {
-		$.post('/admin/index.php?route=module/vkm/delete&token=<?php echo $token; ?>', {id: $(obj).attr('log_id')}, function(d) {
+		$.post('/admin/index.php?route=<?php echo (VERSION >= 2.3)?'extension/module/vkm/delete':'module/vkm/delete';?>&token=<?php echo $token; ?>', {id: $(obj).attr('log_id')}, function(d) {
 			$(obj).parent().remove();
 	});
 }
