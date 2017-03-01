@@ -148,6 +148,12 @@
 			return $arResult;
 		}
 		
+		public function edit($params) {
+			if ($params['product']['item_id']) {
+				return $this->add($params);
+			}
+		}
+		
 		public function add($params) {
 			
 			if ($params['product'] AND $params['photos']) {
@@ -169,18 +175,24 @@
 					
 					
 				}
-				
-				$r = $this->api('market.add',array(
+				$params['product']['item_id'] = (isset($params['product']['item_id']))?$params['product']['item_id']:'';
+				$r = $this->api(($params['product']['item_id'])?'market.edit':'market.add',array(
+						'item_id'		=> $params['product']['item_id'],
 						'owner_id' 		=> '-'.$this->marketID,
 						'name' 			=> $params['product']['name'],
 						'description' 	=> $params['product']['description'],
 						'category_id' 	=> $params['product']['category_id'],
 						'price' 		=> $params['product']['price'],
-						'deleted' 		=> '0',
+						'deleted' 		=> $params['product']['deleted'],
 						'main_photo_id' => $mainPhoto,
 						'photo_ids' 	=> (count($arrPhotoID))?implode(',', $arrPhotoID):''), 'array', 'post');
 				
-				return (isset($r['response']['market_item_id']))?$r['response']['market_item_id']:'';
+				if (!$params['product']['item_id']) {
+					return (isset($r['response']['market_item_id']))?$r['response']['market_item_id']:'';
+				} else {
+					return (isset($r['response']))?$r['response']:'';
+				}
+			
 			}
 		}
 	

@@ -10,10 +10,9 @@ class ControllerModuleVKM extends Controller
 			$this->load->language('module/vkm');
 			$this->document->setTitle($this->language->get('heading_title'));
 			$this->load->model('setting/setting');
+			
+			$data = $this->getSettings();
 			$data['token'] = $this->session->data['token'];
-			foreach ($this->model_setting_setting->getSetting('vkm') as $k=>$v) {
-				$data[$k] =$v;
-			}
 			
 			if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 				foreach ($this->request->post['vkm_group_name'] as $k=>$v) {
@@ -27,6 +26,7 @@ class ControllerModuleVKM extends Controller
 						unset($this->request->post['vkm_group_name'][$k]);
 					}
 				}
+				
 				
 				$this->model_setting_setting->editSetting('vkm', $this->request->post);
 	
@@ -89,7 +89,16 @@ class ControllerModuleVKM extends Controller
 		
 		public function getSettings() {
 			$this->load->model('setting/setting');
-			return $this->model_setting_setting->getSetting('vkm');
+			foreach ($this->model_setting_setting->getSetting('vkm') as $k=>$v) {
+				if ($k == 'vkm_fields_update') {
+					foreach ($v as $vv) {
+						$d[$k][$vv] = $vv;
+					}	
+				} else {
+					$d[$k] = $v;
+				}
+			}
+			return $d;
 		}
 		public function getExportInterface() {
 			header('Content-Type: text/html; charset=UTF-8');
@@ -165,6 +174,7 @@ class ControllerModuleVKM extends Controller
 			<label for="owner_id">Куда выгружать товар</label>
 			'.$htmlSelectOwner.'
 		</div>
+		
 	<br><hr style="border-top: 1px solid #929191;"><br></div>';
 				}
 			} else {}
@@ -231,38 +241,53 @@ class ControllerModuleVKM extends Controller
 									'price' => $queryData['price'][$k],
 									'deleted' => '0'),
 									'photos' => $arProductPhotos);
-				$r = $VKAPI->add($dataExport);
+				$vkProductID = $VKAPI->add($dataExport);
 				
 				//надо добавить в лог 
-				$VKAPI->addToAlbum($IDMarket, $r, $IDAlbum);
+				$VKAPI->addToAlbum($IDMarket, $vkProductID, $IDAlbum);
 				
-				
-				if ($r) {
-
-					$this->db->query("INSERT INTO `" . DB_PREFIX . "vkm_log_export` (`oc_product_id`,
-																					`vk_product_id`,
-																					`vk_market_id`,
-																					`vk_category_id`,
-																					`result`,
-																					`date_export`,
-																					`date_create`,
-																					`vk_album_ids`)
-																					VALUES
-																					('{$productID}',
-																					'{$r}',
-																					'{$IDMarket}',
-																					'{$IDCategory}',
-																					'1',
-																					NOW(),
-																					NOW(),
-																					'{$IDAlbum}')");
-					
-					$this->session->data['success'] .= 'Товар экспортирован. <a href="https://vk.com/club'.$VKAPI->marketID.'?w=product-'.$VKAPI->marketID.'_'.$r.'">' . $queryData['name'][$k] . ' (' . $r . ')</a><br>';
+				if ($vkProductID) {
+					$this->setLogExport(array('oc_product_id' => $productID,
+											  'vk_product_id' => $vkProductID,
+											  'vk_market_id' => $IDMarket,
+											  'vk_category_id' => $IDCategory,
+											  'vk_album_ids' => $IDAlbum,
+											  'data_export' => $dataExport));
+					$this->session->data['success'] .= 'Товар экспортирован. <a href="https://vk.com/club'.$VKAPI->marketID.'?w=product-'.$VKAPI->marketID.'_'.$vkProductID.'">' . $queryData['name'][$k] . ' (' . $vkProductID . ')</a><br>';
 				} else {
 					$this->session->data['warning'] .= 'Не удалось экспортировать товар. <a href="/admin/index.php?route=catalog/product/edit&token=' . $this->session->data['token'] . '&product_id='.$productID.'">' . $queryData['name'][$k] . ' (' . $productID . ')</a><br>';
 				}
 			}
 			$this->response->redirect($_SERVER['HTTP_REFERER']);
+		}
+		
+		public function setLogExport($params) {
+			$dateExport = ($params['date_export'])?"'".$params['date_export']."'":'NOW()';
+			$dateCreate = ($params['date_create'])?"'".$params['date_create']."'":'NOW()';
+			$ID 		= ($params['id'])?$params['id']:'';
+			
+			$this->db->query("REPLACE INTO `" . DB_PREFIX . "vkm_log_export` (`id`,
+																			`oc_product_id`,
+																			`vk_product_id`,
+																			`vk_market_id`,
+																			`vk_category_id`,
+																			`result`,
+																			`date_export`,
+																			`date_create`,
+																			`vk_album_ids`,
+																			`data_export`)
+																			VALUES
+																			('{$ID}',
+																			'{$params['oc_product_id']}',
+																			'{$params['vk_product_id']}',
+																			'{$params['vk_market_id']}',
+																			'{$params['vk_category_id']}',
+																			'1',
+																			{$dateExport},
+																			{$dateCreate},
+																			'{$params['vk_album_ids']}',
+																			'".serialize($params['data_export'])."')");
+			
 		}
 		
 		private function getHTMLSelectOwner($name, $firstClear, $getAlbums = true) {
@@ -336,13 +361,19 @@ class ControllerModuleVKM extends Controller
 			return $vkMarket;
 		}
 		
-		public function getExportList() {
-			$r = $this->db->query("SELECT * FROM `" . DB_PREFIX . "vkm_log_export` WHERE `oc_product_id` = '" . $this->request->request['oc_product_id'] . "'"); 
-			
-			if ($this->request->request['format'] == 'json') {
-				echo json_encode($r->rows);
+		public function getExportList($key = null) {
+			$r = $this->db->query("SELECT * FROM `" . DB_PREFIX . "vkm_log_export`");
+			if ($key) {
+				foreach ($r->rows as $k=>$v) {
+					if ($v[$key]) {
+						$d[$key] = $v;
+					} else {
+						$d[$kk] = $v;
+					}
+				}
+				return $d;
 			} else {
-				echo $r->rows;
+				return $r->rows;
 			}
 		}
 		
@@ -357,6 +388,73 @@ class ControllerModuleVKM extends Controller
 				
 				$this->db->query("DELETE FROM `" . DB_PREFIX . "vkm_log_export` WHERE `id` = '" . $this->request->request['id'] . "'"); 
 				echo 1;
+			}
+		}
+		
+		public function update() {
+			$settings = $this->getSettings();
+			$settings = $settings['vkm_fields_update'];
+			
+			//получаем ранее экспортированные товары
+			$arProductExport = $this->getExportList();
+			foreach ($arProductExport as $v) {
+				//собираем запрос, что б отфильтровать товар который экспортировать не нужно
+				$arSQLQuery[] = '(`product_id` = '.$v['oc_product_id'].' AND `date_modified` > "'.$v['date_export'].'")';
+				$OCProductToVKProduct[$v['oc_product_id']][$v['vk_product_id']] = $v;
+			}
+			
+			if ($arSQLQuery) {
+				$r = $this->db->query("SELECT * FROM `" . DB_PREFIX . "product` WHERE " . implode(' OR ', $arSQLQuery));
+				if ($r->rows) {
+					$VKAPI = $this->getObjectAPIVK();
+					$this->load->model('catalog/product');
+					
+					foreach ($r->rows as $v) {
+						$product = $this->model_catalog_product->getProduct($v['product_id']);
+						foreach ($OCProductToVKProduct[$v['product_id']] as $VKProductID=>$dataExport) {
+							
+							if ($dataExport['data_export']) {
+								$dataExport['data_export'] = unserialize($dataExport['data_export']);
+								$DXP = $dataExport['data_export']['product'];
+								
+								if ($settings['price'] AND $product['price'] != $DXP['price']) {
+									$DXP['price'] = $product['price'];
+								}
+								
+								if ($settings['deleted']) {
+									if ($product['status'] == 1) {
+										if ($product['quantity'] > 0) {
+											$deletedResutl = 0;
+										} else {
+											$deletedResutl = 1;
+										}
+									} else {
+										$deletedResutl = 1;
+									}
+									
+									if ($deletedResutl != $DXP['deleted']) {
+										$DXP['deleted'] = $deletedResutl;
+									}
+								}
+								
+								if ($DXP != $dataExport['data_export']['product']) {
+									
+									$dataExport['data_export']['product'] = $DXP;
+									$dataExport['data_export']['product']['item_id'] = $dataExport['vk_product_id'];
+									
+									$VKAPI->setIDMarket($dataExport['vk_market_id']);
+									if ($VKAPI->edit($dataExport['data_export'])) {
+										echo $dataExport['data_export']['product']['item_id'].'<br>';
+										unset($dataExport['data_export']['product']['item_id']);
+										$dataExport['date_export'] = date('Y-m-d H:i:s');
+										$this->setLogExport($dataExport);
+									}
+								}
+							} 
+							
+						}
+					}
+				}
 			}
 		}
 	}

@@ -38,7 +38,7 @@ if (!productID) {
 					$section = 'section=album_' . $vkm_log_export[$product['product_id']][0]['vk_album_ids'] . '&';
 				}
 			  echo '<span><a target="_blank" href="https://vk.com/market-' . $vkm_log_export[$product['product_id']][0]['vk_market_id'] . '?'.$section.'w=product-' . $vkm_log_export[$product['product_id']][0]['vk_market_id'] . '_' . $vkm_log_export[$product['product_id']][0]['vk_product_id'] . '">' . 
-			  date('H:i d.m.Y', strtotime($vkm_log_export[$product['product_id']][0]['date_export'])) . '</a> &nbsp; (' . $VKMSettings['vkm_group_name'][array_search($product['product_id'], $VKMSettings['vkm_group_id'])] . ') &nbsp;<span style="color:red; cursor: pointer;font-weight:bold;" class="VKMDelete" log_id="' . $vkm_log_export[$product['product_id']][0]['id'] . '">X</span></span>';
+			  date('H:i d.m.Y', strtotime($vkm_log_export[$product['product_id']][0]['date_export'])) . '</a> &nbsp; (' . $VKMSettings['vkm_group_name'][array_search($vkm_log_export[$product['product_id']][0]['vk_market_id'], $VKMSettings['vkm_group_id'])] . ') &nbsp;<span style="color:red; cursor: pointer;font-weight:bold;" class="VKMDelete" log_id="' . $vkm_log_export[$product['product_id']][0]['id'] . '">X</span></span>';
 			} else if (isset($vkm_log_export[$product['product_id']]) AND count($vkm_log_export[$product['product_id']]) > 1) {
 			  echo '<span style="display: inline-block;">';
 			  foreach ($vkm_log_export[$product['product_id']] as $v) {

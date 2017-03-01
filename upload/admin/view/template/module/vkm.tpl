@@ -73,8 +73,21 @@
 							} ?>
 							<input name="vkm_group_id[]" placeholder="28551727" class="form-control">
 						</div>
-						
 					</div>
+					<hr>
+					<h3>Автоматическое обновление</h3>
+					<div class="form-group">
+						<div class="col-sm-10">
+							<label class="col-sm-4 control-label"  for="input-status">
+								Цена - <input name="vkm_fields_update[]" <?=($vkm_fields_update['price'])?'checked':'';?> value="price" type="checkbox"><br>
+								<span title="если остаток товара 0 - неактивный. если остаток больше 0 - активный">Активный/Неактивный</span>  - <input name="vkm_fields_update[]" <?=($vkm_fields_update['deleted'])?'checked':'';?> value="deleted" type="checkbox"><br>
+							</label>
+							<div class="col-sm-2">
+								
+							</div>
+						</div>
+					</div>
+
 				</form>
       </div>
     </div>
