@@ -75,7 +75,7 @@
 						</div>
 					</div>
 					<hr>
-					<h3>Автоматическое обновление</h3>
+					<h3>Обновление</h3>
 					<div class="form-group">
 						<div class="col-sm-10">
 							<label class="col-sm-4 control-label"  for="input-status">

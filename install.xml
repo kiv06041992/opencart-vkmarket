@@ -52,7 +52,9 @@ if (!productID) {
 			}
 			?> <button produc_id="<?php
 			echo $product['product_id'];
-			?>" type="button" class="btn btn-primary" data-toggle="modal" title="VKMExportMarket" data-target="#VKMExportMarket"><i class="fa fa-copy"></i></button> <a href="<?php
+			?>" type="button" class="btn btn-primary" data-toggle="modal" title="VKMExportMarket" data-target="#VKMExportMarket"><i class="fa fa-copy"></i></button>
+			
+			<a href="<?php
 			echo $product['edit'];
 			?>" data-toggle="tooltip" title="<?php
 			echo $button_edit;
@@ -63,7 +65,9 @@ if (!productID) {
    <file path="admin/view/template/catalog/product_list.tpl">
       <operation>
          <search><![CDATA[<?php echo $button_filter; ?></button>]]></search>
-         <add position="after"><![CDATA[<button produc_id="" type="button" class="btn btn-primary" data-toggle="modal" title="VKMExportMarket" data-target="#VKMExportMarket"><i class="fa fa-copy"></i></button>]]></add>
+         <add position="after"><![CDATA[<button produc_id="" type="button" class="btn btn-primary" data-toggle="modal" title="VKMExportMarket" data-target="#VKMExportMarket"><i class="fa fa-copy"></i></button>
+			&nbsp;<a href="/admin/index.php?route=module/vkm/update&token=<?php echo $token; ?>" target="_blank"><button type="button" class="btn btn btn-primary" title="Обновить весь товар"><i class="fa fa-refresh"></i></button></a>
+			]]></add>
       </operation>
    </file>
    <file path="admin/view/template/catalog/product_list.tpl">

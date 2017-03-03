@@ -235,16 +235,17 @@ class ControllerModuleVKM extends Controller
 				$VKAPI->setIDMarket($IDMarket);
 				
 				$dataExport = array('product' => array(
-									'name' => $queryData['name'][$k],
-									'description' => $queryData['description'][$k],
+									'name' => htmlspecialchars_decode($queryData['name'][$k]),
+									'description' => htmlspecialchars_decode($queryData['description'][$k]),
 									'category_id' => $IDCategory, 
 									'price' => $queryData['price'][$k],
 									'deleted' => '0'),
 									'photos' => $arProductPhotos);
 				$vkProductID = $VKAPI->add($dataExport);
 				
-				//надо добавить в лог 
-				$VKAPI->addToAlbum($IDMarket, $vkProductID, $IDAlbum);
+				if ($IDAlbum) {
+					$VKAPI->addToAlbum($IDMarket, $vkProductID, $IDAlbum);
+				}
 				
 				if ($vkProductID) {
 					$this->setLogExport(array('oc_product_id' => $productID,
@@ -261,10 +262,14 @@ class ControllerModuleVKM extends Controller
 			$this->response->redirect($_SERVER['HTTP_REFERER']);
 		}
 		
+		
 		public function setLogExport($params) {
 			$dateExport = ($params['date_export'])?"'".$params['date_export']."'":'NOW()';
 			$dateCreate = ($params['date_create'])?"'".$params['date_create']."'":'NOW()';
 			$ID 		= ($params['id'])?$params['id']:'';
+
+			$params['data_export']['product']['name'] = htmlspecialchars($params['data_export']['product']['name'], ENT_QUOTES);
+			$params['data_export']['product']['description'] = htmlspecialchars($params['data_export']['product']['description'], ENT_QUOTES);
 			
 			$this->db->query("REPLACE INTO `" . DB_PREFIX . "vkm_log_export` (`id`,
 																			`oc_product_id`,
@@ -405,16 +410,21 @@ class ControllerModuleVKM extends Controller
 			
 			if ($arSQLQuery) {
 				$r = $this->db->query("SELECT * FROM `" . DB_PREFIX . "product` WHERE " . implode(' OR ', $arSQLQuery));
+				
 				if ($r->rows) {
 					$VKAPI = $this->getObjectAPIVK();
 					$this->load->model('catalog/product');
-					
+					 
 					foreach ($r->rows as $v) {
 						$product = $this->model_catalog_product->getProduct($v['product_id']);
 						foreach ($OCProductToVKProduct[$v['product_id']] as $VKProductID=>$dataExport) {
 							
 							if ($dataExport['data_export']) {
+								
 								$dataExport['data_export'] = unserialize($dataExport['data_export']);
+								$dataExport['data_export']['product']['name'] = htmlspecialchars_decode($dataExport['data_export']['product']['name']);
+								$dataExport['data_export']['product']['description'] = htmlspecialchars_decode($dataExport['data_export']['product']['description']);
+								
 								$DXP = $dataExport['data_export']['product'];
 								
 								if ($settings['price'] AND $product['price'] != $DXP['price']) {
@@ -454,8 +464,9 @@ class ControllerModuleVKM extends Controller
 							
 						}
 					}
-				}
+				} 
 			}
+			echo 1;
 		}
 	}
 	
