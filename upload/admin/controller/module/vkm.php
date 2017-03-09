@@ -87,7 +87,7 @@ class ControllerModuleVKM extends Controller
 			return !$this->error;
 		}
 		
-		public function getSettings() {
+		public function getSettings($key = null) {
 			$this->load->model('setting/setting');
 			foreach ($this->model_setting_setting->getSetting('vkm') as $k=>$v) {
 				if ($k == 'vkm_fields_update') {
@@ -98,7 +98,7 @@ class ControllerModuleVKM extends Controller
 					$d[$k] = $v;
 				}
 			}
-			return $d;
+			return ($key)?$d[$key]:$d;
 		}
 		public function getExportInterface() {
 			header('Content-Type: text/html; charset=UTF-8');
@@ -241,22 +241,52 @@ class ControllerModuleVKM extends Controller
 									'price' => $queryData['price'][$k],
 									'deleted' => '0'),
 									'photos' => $arProductPhotos);
-				$vkProductID = $VKAPI->add($dataExport);
 				
-				if ($IDAlbum) {
-					$VKAPI->addToAlbum($IDMarket, $vkProductID, $IDAlbum);
-				}
 				
-				if ($vkProductID) {
-					$this->setLogExport(array('oc_product_id' => $productID,
-											  'vk_product_id' => $vkProductID,
-											  'vk_market_id' => $IDMarket,
-											  'vk_category_id' => $IDCategory,
-											  'vk_album_ids' => $IDAlbum,
-											  'data_export' => $dataExport));
-					$this->session->data['success'] .= 'Товар экспортирован. <a href="https://vk.com/club'.$VKAPI->marketID.'?w=product-'.$VKAPI->marketID.'_'.$vkProductID.'">' . $queryData['name'][$k] . ' (' . $vkProductID . ')</a><br>';
+				
+				$exportList = $this->getExportList(array('oc_product_id' => $productID, 'vk_market_id' => $IDMarket));
+				
+				if (!$this->getSettings('vkm_not_duplication_product') OR 
+					!$exportList) {
+					$vkProductID = $VKAPI->add($dataExport);
+					
+					if ($IDAlbum) {
+						$VKAPI->addToAlbum($IDMarket, $vkProductID, $IDAlbum);
+					}
+					if ($vkProductID) {
+						$this->setLogExport(array('oc_product_id' => $productID,
+												  'vk_product_id' => $vkProductID,
+												  'vk_market_id' => $IDMarket,
+												  'vk_category_id' => $IDCategory,
+												  'vk_album_ids' => $IDAlbum,
+												  'data_export' => $dataExport));
+						$this->session->data['success'] .= 'Товар экспортирован. <a target="_blank" href="https://vk.com/club'.$VKAPI->marketID.'?w=product-'.$VKAPI->marketID.'_'.$vkProductID.'">' . $queryData['name'][$k] . ' (' . $vkProductID . ')</a><br>';
+					} else {
+						$this->session->data['warning'] .= 'Не удалось экспортировать товар. <a target="_blank" href="/admin/index.php?route=catalog/product/edit&token=' . $this->session->data['token'] . '&product_id='.$productID.'">' . $queryData['name'][$k] . ' (' . $productID . ')</a><br>';
+					}
 				} else {
-					$this->session->data['warning'] .= 'Не удалось экспортировать товар. <a href="/admin/index.php?route=catalog/product/edit&token=' . $this->session->data['token'] . '&product_id='.$productID.'">' . $queryData['name'][$k] . ' (' . $productID . ')</a><br>';
+					foreach ($exportList as $value) {
+						if ($value['vk_album_ids'] != $IDAlbum) {
+							$VKAPI->addToAlbum($IDMarket, $value['vk_product_id'], $IDAlbum);
+						}
+						$vkProductID = $dataExport['product']['item_id'] = $value['vk_product_id'];
+						$r = $VKAPI->edit($dataExport);
+						if ($r) {
+							$this->setLogExport(array('id' => $value['id'],
+													  'oc_product_id' => $value['oc_product_id'],
+													  'vk_product_id' => $value['vk_product_id'],
+													  'vk_market_id' => $value['vk_market_id'],
+													  'vk_category_id' => $value['vk_category_id'],
+													  'vk_album_ids' => $IDAlbum,
+													  'data_export' => $dataExport));
+							$this->session->data['success'] .= 'Товар обновлен. <a target="_blank" href="https://vk.com/club'.$VKAPI->marketID.'?w=product-'.$VKAPI->marketID.'_'.$vkProductID.'">' . $queryData['name'][$k] . ' (' . $vkProductID . ')</a><br>';
+						} else {
+							$this->session->data['warning'] .= 'Не удалось обновить товар. <a target="_blank" href="/admin/index.php?route=catalog/product/edit&token=' . $this->session->data['token'] . '&product_id='.$productID.'">' . $queryData['name'][$k] . ' (' . $productID . ')</a><br>';
+						}
+					}
+					$vkProductID = $value['vk_product_id'];
+					
+					
 				}
 			}
 			$this->response->redirect($_SERVER['HTTP_REFERER']);
@@ -264,9 +294,9 @@ class ControllerModuleVKM extends Controller
 		
 		
 		public function setLogExport($params) {
-			$dateExport = ($params['date_export'])?"'".$params['date_export']."'":'NOW()';
-			$dateCreate = ($params['date_create'])?"'".$params['date_create']."'":'NOW()';
-			$ID 		= ($params['id'])?$params['id']:'';
+			$dateExport = (isset($params['date_export']))?"'".$params['date_export']."'":'NOW()';
+			$dateCreate = (isset($params['date_create']))?"'".$params['date_create']."'":'NOW()';
+			$ID 		= (isset($params['id']))?$params['id']:null;
 
 			$params['data_export']['product']['name'] = htmlspecialchars($params['data_export']['product']['name'], ENT_QUOTES);
 			$params['data_export']['product']['description'] = htmlspecialchars($params['data_export']['product']['description'], ENT_QUOTES);
@@ -366,8 +396,16 @@ class ControllerModuleVKM extends Controller
 			return $vkMarket;
 		}
 		
-		public function getExportList($key = null) {
-			$r = $this->db->query("SELECT * FROM `" . DB_PREFIX . "vkm_log_export`");
+		public function getExportList($filters = '1', $key = null) {
+			if (is_array($filters)) {
+				foreach ($filters as $row=>$value) {
+					$r[] = '`' . $row . '` = "' . $value . '"'; 
+				}
+				$filters = implode(' AND ', $r);
+			}
+			
+			$r = $this->db->query("SELECT * FROM `" . DB_PREFIX . "vkm_log_export` WHERE " . $filters);
+			
 			if ($key) {
 				foreach ($r->rows as $k=>$v) {
 					if ($v[$key]) {
@@ -401,71 +439,80 @@ class ControllerModuleVKM extends Controller
 			$settings = $settings['vkm_fields_update'];
 			
 			//получаем ранее экспортированные товары
+			
 			$arProductExport = $this->getExportList();
+			
 			foreach ($arProductExport as $v) {
 				//собираем запрос, что б отфильтровать товар который экспортировать не нужно
 				$arSQLQuery[] = '(`product_id` = '.$v['oc_product_id'].' AND `date_modified` > "'.$v['date_export'].'")';
 				$OCProductToVKProduct[$v['oc_product_id']][$v['vk_product_id']] = $v;
+				
+				if ($arSQLQuery > 10) {
+					if ($arSQLQuery) {
+						$r = $this->db->query("SELECT * FROM `" . DB_PREFIX . "product` WHERE " . implode(' OR ', $arSQLQuery));
+						
+						if ($r->rows) {
+							$VKAPI = $this->getObjectAPIVK();
+							$this->load->model('catalog/product');
+							 
+							foreach ($r->rows as $v) {
+								$product = $this->model_catalog_product->getProduct($v['product_id']);
+								foreach ($OCProductToVKProduct[$v['product_id']] as $VKProductID=>$dataExport) {
+									
+									if ($dataExport['data_export']) {
+										
+										$dataExport['data_export'] = unserialize($dataExport['data_export']);
+										$dataExport['data_export']['product']['name'] = htmlspecialchars_decode($dataExport['data_export']['product']['name']);
+										$dataExport['data_export']['product']['description'] = htmlspecialchars_decode($dataExport['data_export']['product']['description']);
+										
+										$DXP = $dataExport['data_export']['product'];
+										
+										if ($settings['price'] AND $product['price'] != $DXP['price']) {
+											$DXP['price'] = $product['price'];
+										}
+										
+										if ($settings['deleted']) {
+											if ($product['status'] == 1) {
+												if ($product['quantity'] > 0) {
+													$deletedResutl = 0;
+												} else {
+													$deletedResutl = 1;
+												}
+											} else {
+												$deletedResutl = 1;
+											}
+											
+											if ($deletedResutl != $DXP['deleted']) {
+												$DXP['deleted'] = $deletedResutl;
+											}
+										}
+										
+										if ($DXP != $dataExport['data_export']['product']) {
+											
+											$dataExport['data_export']['product'] = $DXP;
+											$dataExport['data_export']['product']['item_id'] = $dataExport['vk_product_id'];
+											
+											$VKAPI->setIDMarket($dataExport['vk_market_id']);
+											if ($VKAPI->edit($dataExport['data_export'])) {
+												echo $dataExport['data_export']['product']['item_id'].'<br>';
+												unset($dataExport['data_export']['product']['item_id']);
+												$dataExport['date_export'] = date('Y-m-d H:i:s');
+												$this->setLogExport($dataExport);
+											}
+										}
+									} 
+									
+								}
+							}
+						} 
+					}
+					$arSQLQuery = '';
+					$OCProductToVKProduct = '';
+				}
+				
 			}
 			
-			if ($arSQLQuery) {
-				$r = $this->db->query("SELECT * FROM `" . DB_PREFIX . "product` WHERE " . implode(' OR ', $arSQLQuery));
-				
-				if ($r->rows) {
-					$VKAPI = $this->getObjectAPIVK();
-					$this->load->model('catalog/product');
-					 
-					foreach ($r->rows as $v) {
-						$product = $this->model_catalog_product->getProduct($v['product_id']);
-						foreach ($OCProductToVKProduct[$v['product_id']] as $VKProductID=>$dataExport) {
-							
-							if ($dataExport['data_export']) {
-								
-								$dataExport['data_export'] = unserialize($dataExport['data_export']);
-								$dataExport['data_export']['product']['name'] = htmlspecialchars_decode($dataExport['data_export']['product']['name']);
-								$dataExport['data_export']['product']['description'] = htmlspecialchars_decode($dataExport['data_export']['product']['description']);
-								
-								$DXP = $dataExport['data_export']['product'];
-								
-								if ($settings['price'] AND $product['price'] != $DXP['price']) {
-									$DXP['price'] = $product['price'];
-								}
-								
-								if ($settings['deleted']) {
-									if ($product['status'] == 1) {
-										if ($product['quantity'] > 0) {
-											$deletedResutl = 0;
-										} else {
-											$deletedResutl = 1;
-										}
-									} else {
-										$deletedResutl = 1;
-									}
-									
-									if ($deletedResutl != $DXP['deleted']) {
-										$DXP['deleted'] = $deletedResutl;
-									}
-								}
-								
-								if ($DXP != $dataExport['data_export']['product']) {
-									
-									$dataExport['data_export']['product'] = $DXP;
-									$dataExport['data_export']['product']['item_id'] = $dataExport['vk_product_id'];
-									
-									$VKAPI->setIDMarket($dataExport['vk_market_id']);
-									if ($VKAPI->edit($dataExport['data_export'])) {
-										echo $dataExport['data_export']['product']['item_id'].'<br>';
-										unset($dataExport['data_export']['product']['item_id']);
-										$dataExport['date_export'] = date('Y-m-d H:i:s');
-										$this->setLogExport($dataExport);
-									}
-								}
-							} 
-							
-						}
-					}
-				} 
-			}
+			
 			echo 1;
 		}
 	}

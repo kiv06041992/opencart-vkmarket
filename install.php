@@ -30,7 +30,7 @@
 		if (copy($_SERVER['DOCUMENT_ROOT'] . $DS . 'admin' . $DS . 'controller' . $DS . 'module' . $DS . 'vkm.php',
 			$_SERVER['DOCUMENT_ROOT'] . $DS . 'admin' . $DS . 'controller' . $DS . 'extension' . $DS . 'module' . $DS . 'vkm.php')) {
 			unlink($_SERVER['DOCUMENT_ROOT'] . $DS . 'admin' . $DS . 'controller' . $DS . 'module' . $DS . 'vkm.php');
-			rmdir($_SERVER['DOCUMENT_ROOT'] . $DS . 'admin' . $DS . 'controller' . $DS . 'module');
+			@rmdir($_SERVER['DOCUMENT_ROOT'] . $DS . 'admin' . $DS . 'controller' . $DS . 'module');
 		}
 	}
 	function createrTableLog($obj, $pref)  {

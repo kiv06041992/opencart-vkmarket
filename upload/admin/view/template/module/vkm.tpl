@@ -79,12 +79,15 @@
 					<div class="form-group">
 						<div class="col-sm-10">
 							<label class="col-sm-4 control-label"  for="input-status">
-								Цена - <input name="vkm_fields_update[]" <?=($vkm_fields_update['price'])?'checked':'';?> value="price" type="checkbox"><br>
+								Цена - <input name="vkm_fields_update[]" <?php echo ($vkm_fields_update['price'])?'checked':'';?> value="price" type="checkbox"><br>
 								<span title="если остаток товара 0 - неактивный. если остаток больше 0 - активный">Активный/Неактивный</span>  - <input name="vkm_fields_update[]" <?=($vkm_fields_update['deleted'])?'checked':'';?> value="deleted" type="checkbox"><br>
 							</label>
-							<div class="col-sm-2">
-								
-							</div>
+							<div class="col-sm-4"></div>
+							<label class="col-sm-4 control-label"  for="input-status">
+								При повторной выгрузке обновлять товар -
+								<input name="vkm_not_duplication_product" <?php echo (isset($vkm_not_duplication_product))?'checked':'';?>  value="1" type="checkbox">
+							</label>
+							
 						</div>
 					</div>
 
