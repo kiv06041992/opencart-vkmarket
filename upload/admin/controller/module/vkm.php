@@ -87,6 +87,10 @@ class ControllerModuleVKM extends Controller
 			return !$this->error;
 		}
 		
+		
+		/**
+			Возвращает настройки модуля
+		*/
 		public function getSettings($key = null) {
 			$this->load->model('setting/setting');
 			foreach ($this->model_setting_setting->getSetting('vkm') as $k=>$v) {
@@ -98,8 +102,18 @@ class ControllerModuleVKM extends Controller
 					$d[$k] = $v;
 				}
 			}
-			return ($key)?$d[$key]:$d;
+			if ($key && isset($d[$key])) {
+				return $d[$key];
+			} else if (isset($d)) {
+				return $d;
+			} else {
+				return false;
+			}
 		}
+		
+		/**
+			Интерфейс модуля
+		*/
 		public function getExportInterface() {
 			header('Content-Type: text/html; charset=UTF-8');
 			
@@ -107,10 +121,10 @@ class ControllerModuleVKM extends Controller
 			
 			$dataSettings = $this->getSettings();
 			$html = '';
-			if (!$dataSettings['vkm_app_id'] OR
-					!$dataSettings['vkm_api_secret'] OR
-					!$dataSettings['vkm_access_token'] OR
-					!$dataSettings['vkm_group_id']) {
+			if (!isset($dataSettings['vkm_app_id']) OR
+				!isset($dataSettings['vkm_api_secret']) OR
+				!isset($dataSettings['vkm_access_token']) OR
+				!isset($dataSettings['vkm_group_id'])) {
 					$html .= '<p style="padding:15px;" class="bg-danger"><b>Проверьте настройки модуля</b></p>';
 			}
 			
@@ -195,7 +209,7 @@ class ControllerModuleVKM extends Controller
 				$product = $this->model_catalog_product->getProduct($productID);
 				
 				$i = 0;
-				$arProductPhotos = '';
+				$arProductPhotos = array();
 				if ($product['image']) {
 					$arProductPhotos[$i]['path'] = $_SERVER['DOCUMENT_ROOT'] . '/image/'.$product['image'];
 					$arProductPhotos[$i]['is_main'] = 1;
@@ -285,6 +299,7 @@ class ControllerModuleVKM extends Controller
 						}
 					}
 					$vkProductID = $value['vk_product_id'];
+					
 					
 					
 				}
