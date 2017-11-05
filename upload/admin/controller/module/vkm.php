@@ -32,7 +32,7 @@ class ControllerModuleVKM extends Controller
 	
 				$this->session->data['success'] = $this->language->get('text_success');
 	
-				$this->response->redirect($this->url->link(($verOver23)?'extension/extension':'extension/module', 'token=' . $data['token'], true));
+				$this->response->redirect($this->url->link(($verOver23)?'extension/module/vkm':'extension/module/', 'token=' . $data['token'], true));
 			}
 			
 			$data['heading_title'] = $this->language->get('heading_title');
@@ -102,8 +102,12 @@ class ControllerModuleVKM extends Controller
 					$d[$k] = $v;
 				}
 			}
-			if ($key && isset($d[$key])) {
-				return $d[$key];
+			if ($key) {
+				if (isset($d[$key])) {
+					return $d[$key];
+				} else {
+					return false;
+				}
 			} else if (isset($d)) {
 				return $d;
 			} else {
@@ -128,7 +132,7 @@ class ControllerModuleVKM extends Controller
 					$html .= '<p style="padding:15px;" class="bg-danger"><b>Проверьте настройки модуля</b></p>';
 			}
 			
-			if ($queryData['product_id']) {
+			if (isset($queryData['product_id'])) {
 				$arProductsID = explode(',',$queryData['product_id']);
 				
 				$this->load->model('catalog/product');
@@ -259,24 +263,27 @@ class ControllerModuleVKM extends Controller
 				
 				
 				$exportList = $this->getExportList(array('oc_product_id' => $productID, 'vk_market_id' => $IDMarket));
-				
+				//var_dump($this->getSettings('vkm_not_duplication_product'));die('_');
 				if (!$this->getSettings('vkm_not_duplication_product') OR 
 					!$exportList) {
 					$vkProductID = $VKAPI->add($dataExport);
 					
 					if ($IDAlbum) {
-						$VKAPI->addToAlbum($IDMarket, $vkProductID, $IDAlbum);
+						$VKAPI->addToAlbum($IDMarket, $vkProductID['result'], $IDAlbum);
 					}
-					if ($vkProductID) {
+					if ($vkProductID['result']) {
 						$this->setLogExport(array('oc_product_id' => $productID,
-												  'vk_product_id' => $vkProductID,
+												  'vk_product_id' => $vkProductID['result'],
 												  'vk_market_id' => $IDMarket,
 												  'vk_category_id' => $IDCategory,
 												  'vk_album_ids' => $IDAlbum,
 												  'data_export' => $dataExport));
-						$this->session->data['success'] .= 'Товар экспортирован. <a target="_blank" href="https://vk.com/club'.$VKAPI->marketID.'?w=product-'.$VKAPI->marketID.'_'.$vkProductID.'">' . $queryData['name'][$k] . ' (' . $vkProductID . ')</a><br>';
+						$this->session->data['success'] .= 'Товар экспортирован.
+<a target="_blank" href="https://vk.com/club'.$VKAPI->marketID.'?w=product-'.$VKAPI->marketID.'_'.$vkProductID['result'].'">' . $queryData['name'][$k] . ' (' . $vkProductID['result'] . ')</a><br>';
 					} else {
-						$this->session->data['warning'] .= 'Не удалось экспортировать товар. <a target="_blank" href="/admin/index.php?route=catalog/product/edit&token=' . $this->session->data['token'] . '&product_id='.$productID.'">' . $queryData['name'][$k] . ' (' . $productID . ')</a><br>';
+						$this->session->data['warning'] .= 'Не удалось экспортировать товар.
+<a target="_blank" href="/admin/index.php?route=catalog/product/edit&token=' . $this->session->data['token'] . '&product_id='.$productID.'">' . $queryData['name'][$k] . ' (' . $productID . ')</a>&nbsp;
+ - '.$vkProductID['error'].'<br>';
 					}
 				} else {
 					foreach ($exportList as $value) {
@@ -285,7 +292,7 @@ class ControllerModuleVKM extends Controller
 						}
 						$vkProductID = $dataExport['product']['item_id'] = $value['vk_product_id'];
 						$r = $VKAPI->edit($dataExport);
-						if ($r) {
+						if ($r['result']) {
 							$this->setLogExport(array('id' => $value['id'],
 													  'oc_product_id' => $value['oc_product_id'],
 													  'vk_product_id' => $value['vk_product_id'],
@@ -293,9 +300,12 @@ class ControllerModuleVKM extends Controller
 													  'vk_category_id' => $value['vk_category_id'],
 													  'vk_album_ids' => $IDAlbum,
 													  'data_export' => $dataExport));
-							$this->session->data['success'] .= 'Товар обновлен. <a target="_blank" href="https://vk.com/club'.$VKAPI->marketID.'?w=product-'.$VKAPI->marketID.'_'.$vkProductID.'">' . $queryData['name'][$k] . ' (' . $vkProductID . ')</a><br>';
+							$this->session->data['success'] .= 'Товар обновлен.
+<a target="_blank" href="https://vk.com/club'.$VKAPI->marketID.'?w=product-'.$VKAPI->marketID.'_'.$vkProductID.'">' . $queryData['name'][$k] . ' (' . $vkProductID . ')</a><br>';
 						} else {
-							$this->session->data['warning'] .= 'Не удалось обновить товар. <a target="_blank" href="/admin/index.php?route=catalog/product/edit&token=' . $this->session->data['token'] . '&product_id='.$productID.'">' . $queryData['name'][$k] . ' (' . $productID . ')</a><br>';
+							$this->session->data['warning'] .= 'Не удалось обновить товар.
+<a target="_blank" href="/admin/index.php?route=catalog/product/edit&token=' . $this->session->data['token'] . '&product_id='.$productID.'">' . $queryData['name'][$k] . ' (' . $productID . ')</a> 
+-'.$r['error'].'<br>';
 						}
 					}
 					$vkProductID = $value['vk_product_id'];

@@ -85,7 +85,7 @@
 							<div class="col-sm-4"></div>
 							<label class="col-sm-4 control-label"  for="input-status">
 								При повторной выгрузке обновлять товар -
-								<input name="vkm_not_duplication_product" <?php echo (isset($vkm_not_duplication_product))?'checked':'';?>  value="1" type="checkbox">
+								<input name="vkm_not_duplication_product" <?php echo (isset($vkm_not_duplication_product))?'checked':'';?> type="checkbox">
 							</label>
 							
 						</div>

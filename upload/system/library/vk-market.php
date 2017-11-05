@@ -187,12 +187,23 @@
 						'main_photo_id' => $mainPhoto,
 						'photo_ids' 	=> (count($arrPhotoID))?implode(',', $arrPhotoID):''), 'array', 'post');
 				
-				if (!$params['product']['item_id']) {
-					return (isset($r['response']['market_item_id']))?$r['response']['market_item_id']:'';
+				if (!isset($r['error'])) {
+					if (!$params['product']['item_id']) {
+						$data['result'] = (isset($r['response']['market_item_id']))?$r['response']['market_item_id']:'';
+						return $data;
+					} else {
+						$data['result'] = (isset($r['response']))?$r['response']:'';
+						return $data;
+					}
 				} else {
-					return (isset($r['response']))?$r['response']:'';
+					$data['result'] = false;
+					$data['error'] = $r['error']['error_msg'];
+					return $data;
 				}
-			
+			} else {
+				$data['result'] = false;
+				$data['error'] = 'У товара отсутствует основное изображение';
+				return $data;
 			}
 		}
 	

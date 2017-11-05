@@ -37,8 +37,14 @@ if (!productID) {
 				if (isset($vkm_log_export[$product['product_id']][0]['vk_album_ids'])) {
 					$section = 'section=album_' . $vkm_log_export[$product['product_id']][0]['vk_album_ids'] . '&';
 				}
-			  echo '<span><a target="_blank" href="https://vk.com/market-' . $vkm_log_export[$product['product_id']][0]['vk_market_id'] . '?'.$section.'w=product-' . $vkm_log_export[$product['product_id']][0]['vk_market_id'] . '_' . $vkm_log_export[$product['product_id']][0]['vk_product_id'] . '">' . 
-			  date('H:i d.m.Y', strtotime($vkm_log_export[$product['product_id']][0]['date_export'])) . '</a> &nbsp; (' . $VKMSettings['vkm_group_name'][array_search($vkm_log_export[$product['product_id']][0]['vk_market_id'], $VKMSettings['vkm_group_id'])] . ') &nbsp;<span style="color:red; cursor: pointer;font-weight:bold;" class="VKMDelete" log_id="' . $vkm_log_export[$product['product_id']][0]['id'] . '">X</span></span>';
+			   echo '<span><a target="_blank" href="https://vk.com/market-' . $vkm_log_export[$product['product_id']][0]['vk_market_id'] . '?'.$section.'w=product-' . $vkm_log_export[$product['product_id']][0]['vk_market_id'] . '_' . $vkm_log_export[$product['product_id']][0]['vk_product_id'] . '">' . 
+			   date('H:i d.m.Y', strtotime($vkm_log_export[$product['product_id']][0]['date_export'])) . '</a> &nbsp; (';
+				if (isset($VKMSettings['vkm_group_id']) && isset($VKMSettings['vkm_group_name'][array_search($vkm_log_export[$product['product_id']][0]['vk_market_id'], $VKMSettings['vkm_group_id'])])) {
+					echo $VKMSettings['vkm_group_name'][array_search($vkm_log_export[$product['product_id']][0]['vk_market_id'], $VKMSettings['vkm_group_id'])];
+				} else {
+					echo $vkm_log_export[$product['product_id']][0]['vk_market_id'];
+				}
+				echo ') &nbsp;<span style="color:red; cursor: pointer;font-weight:bold;" class="VKMDelete" log_id="' . $vkm_log_export[$product['product_id']][0]['id'] . '">X</span></span>';
 			} else if (isset($vkm_log_export[$product['product_id']]) AND count($vkm_log_export[$product['product_id']]) > 1) {
 			  echo '<span style="display: inline-block;">';
 			  foreach ($vkm_log_export[$product['product_id']] as $v) {
@@ -46,14 +52,23 @@ if (!productID) {
 				if (isset($v['vk_album_ids'])) {
 					$section = 'section=album_' . $v['vk_album_ids'] . '&';
 				}
-				echo '<span><a target="_blank" href="https://vk.com/market-' . $v['vk_market_id'] . '?' . $section . 'w=product-' . $v['vk_market_id'] . '_' . $v['vk_product_id'] . '">' . date('H:i d.m.Y', strtotime($v['date_export'])) . '</a>&nbsp; (' . $VKMSettings['vkm_group_name'][array_search($v['vk_market_id'], $VKMSettings['vkm_group_id'])] . ') &nbsp;<span style="color:red; cursor: pointer;font-weight:bold;" class="VKMDelete" log_id="' . $v['id'] . '">X</span></span><br>';
+				echo '<span><a target="_blank" href="https://vk.com/market-' . $v['vk_market_id'] . '?' . $section . 'w=product-' . $v['vk_market_id'] . '_' . $v['vk_product_id'] . '">' . date('H:i d.m.Y', strtotime($v['date_export'])) . '</a>&nbsp; (' ;
+				if (isset($VKMSettings['vkm_group_id']) && isset($VKMSettings['vkm_group_name'][array_search($v['vk_market_id'], $VKMSettings['vkm_group_id'])])) {
+					echo $VKMSettings['vkm_group_name'][array_search($v['vk_market_id'], $VKMSettings['vkm_group_id'])];
+				} else {
+					echo $v['vk_market_id'];
+				}
+				echo ') &nbsp;<span style="color:red; cursor: pointer;font-weight:bold;" class="VKMDelete" log_id="' . $v['id'] . '">X</span></span><br>';
 			  }
 			  echo '</span>';
 			}
-			?> <button produc_id="<?php
-			echo $product['product_id'];
-			?>" type="button" class="btn btn-primary" data-toggle="modal" title="VKMExportMarket" data-target="#VKMExportMarket"><i class="fa fa-copy"></i></button>
+			?>
 			
+				<button produc_id="<?php
+				echo $product['product_id'];
+				?>" type="button" class="btn btn-primary" data-toggle="modal" title="VKMExportMarket" data-target="#VKMExportMarket"><i class="fa fa-copy"></i>
+				</button>
+				
 			<a href="<?php
 			echo $product['edit'];
 			?>" data-toggle="tooltip" title="<?php
@@ -121,7 +136,7 @@ if (!productID) {
 <file path="admin/controller/catalog/product.php">
       <operation>
          <search><![CDATA[$data['heading_title'] = $this->language->get('heading_title');]]></search>
-         <add position="before"><![CDATA[if ($arProductID) {$r = $this->db->query("SELECT * FROM `" . DB_PREFIX . "vkm_log_export` WHERE `oc_product_id` IN (".implode(',', $arProductID).")"); 
+         <add position="before"><![CDATA[if (isset($arProductID)) {$r = $this->db->query("SELECT * FROM `" . DB_PREFIX . "vkm_log_export` WHERE `oc_product_id` IN (".implode(',', $arProductID).")"); 
 
 	foreach ($r->rows as $v) {
 $data['vkm_log_export'][$v['oc_product_id']][] = $v;
