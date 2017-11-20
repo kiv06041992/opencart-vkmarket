@@ -195,8 +195,9 @@ class ControllerModuleVKM extends Controller
 		
 	<br><hr style="border-top: 1px solid #929191;"><br></div>';
 				}
-			} else {}
-			$html .= '</form>';
+			}
+			
+			$html .= '</form><script>$("button[form=\'export\']").removeAttr("disabled");</script>';
 			echo $html;
 		}
 	

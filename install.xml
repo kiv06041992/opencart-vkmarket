@@ -102,7 +102,7 @@ if (!productID) {
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
-          <button type="submit" form="export" class="btn btn-primary">Экспорт</button>
+          <button type="submit" form="export" class="btn btn-primary" disabled >Экспорт</button>
         </div>
       </div>
     </div>
