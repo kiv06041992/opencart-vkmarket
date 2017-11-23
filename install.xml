@@ -8,7 +8,7 @@
    <file path="admin/view/template/catalog/product_list.tpl">
       <operation>
          <search><![CDATA[$('#button-filter').on('click', function()]]></search>
-         <add position="before"><![CDATA[$('button[data-target="#VKMExportMarket"').click(function() {
+         <add position="before"><![CDATA[$('button[data-target="#VKMExportMarket"]').click(function() {
  productID = $(this).attr('produc_id');
  if (!productID) {
 	$.each($('input[name="selected[]"]:checked'), function (k,v) {
