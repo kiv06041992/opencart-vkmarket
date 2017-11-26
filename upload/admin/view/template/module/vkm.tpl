@@ -51,7 +51,7 @@
 						</div>
 					</div>
 					<div class="form-group ">
-						<label class="col-sm-1 control-label" >
+						<label class="col-sm-2 control-label" >
 							VKGroupName
 						</label>
 						<div class="col-sm-4">
@@ -60,12 +60,12 @@
 								<input name="vkm_group_name[]" value="<?php echo $v;?>" class="form-control"><br>
 							<?php }
 							}?>
-							<input name="vkm_group_name[]" placeholder="VK API Change Log" class="form-control">
+							<input name="vkm_group_name[]" placeholder="My Shop" class="form-control">
 						</div>
 						<label class="col-sm-1 control-label" >
 							VKGroupID
 						</label>
-						<div class="col-sm-6">
+						<div class="col-sm-4">
 							<?php if (isset($vkm_group_id)) {
 								foreach ($vkm_group_id as $k=>$v) {?>
 								<input name="vkm_group_id[]" value="<?php echo $v;?>" class="form-control"><br>
@@ -74,6 +74,17 @@
 							<input name="vkm_group_id[]" placeholder="28551727" class="form-control">
 						</div>
 					</div>
+					<div class="form-group">
+							<label class="col-sm-2 control-label" >
+								Группа/альбом по умолчанию
+							</label>
+							<div class="col-sm-4">
+									<?php if (isset($html_select_owner)) {
+										echo $html_select_owner;
+									} ?>
+							</div>
+							
+						</div>
 					<hr>
 					<h3>Обновление</h3>
 					<div class="form-group">

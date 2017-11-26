@@ -74,6 +74,7 @@ class ControllerModuleVKM extends Controller
 			$data['column_left'] = $this->load->controller('common/column_left');
 			$data['footer'] = $this->load->controller('common/footer');
 			
+			$data['html_select_owner'] = $this->getHTMLSelectOwner('vkm_owner_id_default', false, true, (isset($data['vkm_owner_id_default']))?$data['vkm_owner_id_default']:'');
 			
 			$this->response->setOutput($this->load->view('module/vkm.tpl', $data));
 		}
@@ -186,7 +187,7 @@ class ControllerModuleVKM extends Controller
 		</div>
 		<div class="form-group">
 			<label for="description">Описание</label>
-			<textarea name="description[]" class="form-control" rows="8" placeholder="description">'.trim(strip_tags(htmlspecialchars_decode($product['description']))).'</textarea>
+			<textarea name="description[]" class="form-control" rows="8" placeholder="description">'.preg_replace('/<p[^>]*>\s*?<\/p[^>]*>/', '', trim(strip_tags(str_replace(array('<p>','</p>'), array('', "\n"), htmlspecialchars_decode($product['description']))))).'</textarea>
 		</div>
 		<div class="form-group">
 			<label for="owner_id">Куда выгружать товар</label>
@@ -351,31 +352,79 @@ class ControllerModuleVKM extends Controller
 			
 		}
 		
-		private function getHTMLSelectOwner($name, $firstClear, $getAlbums = true) {
+		
+		/**
+		 * Формирует html select групп и альбомов в которые можно делать выгрузку
+		 * 
+		 * @todo после добавления $selectedElement - $firstClear стал бесполезен. В будущем будет удален.
+		 *
+		 * @param string $name имя select`a
+		 * @param bool $firstClear нужно ли добавлять самым первым пустой option
+		 * @param bool $getAlbums вернуть группы и альбомы
+		 * @param string $selectedElement value элемента который нужно выбрать
+		 *
+		 * @return string;
+		 *
+		 */
+		private function getHTMLSelectOwner($name, $firstClear = false, $getAlbums = true, $selectedElement = '') {
 			$VKAPI = $this->getObjectAPIVK();
-			
 			$dataSettings = $this->getSettings();
+			
+			if ($selectedElement == '') {
+				$selectedElement = $dataSettings['vkm_owner_id_default'];
+			}
+			if ($selectedElement != '') {
+				if (substr_count($selectedElement, '_')) {
+					$selectedElement = explode('_', $selectedElement);
+				}
+			}
+			
 			$htmlSelectOwner = '<select class="form-control" name="'.$name.'">';
 			if ($firstClear) {
 				$htmlSelectOwner .= '<option></option>';
-			}			
+			}
+			
 			foreach ($dataSettings['vkm_group_name'] as $k=>$v) {
+				$selected = '';
 				$arAlbums = '';
 				if ($getAlbums) {
 					$arAlbums = $VKAPI->getAlbums($dataSettings['vkm_group_id'][$k]);
-					
 				}
-				$htmlSelectOwner .= '<option value="'.$dataSettings['vkm_group_id'][$k].'">'.$v.'</option>';
+				if (!is_array($selectedElement) &&
+					intval($selectedElement) &&
+					$selectedElement == $dataSettings['vkm_group_id'][$k]) {
+					$selected = true;
+				}
+				$htmlSelectOwner .= '<option ' . $selected . ' value="'.$dataSettings['vkm_group_id'][$k].'" class="group" style="font-weight: bold;">'.$v.'</option>';
 				foreach ($arAlbums as $album) {
+					$selected = '';
 					// $album['id'] == 0 //видимо, главная категория. В документации информацию не увидел
-					if ($album['id']) { 
-						$htmlSelectOwner .= '<option value="'.$dataSettings['vkm_group_id'][$k].'_'.$album['id'].'"> - '.$album['title'].'</option>';
+					if ($album['id']) {
+						
+						if (is_array($selectedElement) &&
+							$selectedElement[0] == $dataSettings['vkm_group_id'][$k] &&
+							$selectedElement[1] == $album['id']) {
+							$selected = 'selected';
+						} 
+						
+						$htmlSelectOwner .= '<option ' . $selected . ' value="'.$dataSettings['vkm_group_id'][$k].'_'.$album['id'].'" class="album"> - '.$album['title'].'</option>';
 					}
 				}
 			}
 			$htmlSelectOwner .= '</select>';
 			return $htmlSelectOwner;	
 		}
+		
+		
+		/**
+		 * Формирует html select категорий vk для выгрузки товара
+		 *
+		 * @param string $name имя select`a
+		 * @param bool $firstClear нужно ли добавлять самым первым пустой option
+		 *
+		 * @retun string
+		 *
+		 */
 		private function getHTMLSelectCategory($name, $firstClear) {
 			$VKAPI = $this->getObjectAPIVK();
 			
@@ -398,11 +447,11 @@ class ControllerModuleVKM extends Controller
 			
 			return $htmlSelectCategory;	
 		}
-		/*public function getAlbums($name = 't', $firstClear = 't', $marketID = '123159083') {
-			$VKAPI = $this->getObjectAPIVK();
-			return $VKAPI->getAlbums($marketID);
-		}*/
 		
+		/**
+		 * Возвращает объект для работы с vk api
+		 * @return object
+		 */
 		public function getObjectAPIVK() {
 			$dataSettings = $this->getSettings();
 			include_once DIR_SYSTEM. "library/vk-market.php";
@@ -412,10 +461,7 @@ class ControllerModuleVKM extends Controller
 				$dataSettings['vkm_group_id']) {
 					$vkMarket = new VKMarket($dataSettings['vkm_app_id'], $dataSettings['vkm_api_secret'], $dataSettings['vkm_access_token']);
 					$vkMarket->setApiVersion('5.52');
-					//$vkMarket->setIDMarket($dataSettings['vkm_group_id']);
-					
 			} else {
-				
 				return false;
 			}
 			

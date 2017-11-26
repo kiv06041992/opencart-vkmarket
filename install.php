@@ -9,20 +9,26 @@
 		createrTableLog($this, DB_PREFIX);
 	} else {
 		$tablePref = rand() . '_';
+		//копируем таблицу vkm_log_export
 		$this->db->query('CREATE TABLE `'.$tablePref.'vkm_log_export`
 							SELECT *
 							FROM `' . DB_PREFIX . 'vkm_log_export`;');
+		//удаляем таблицу vkm_log_export
 		$this->db->query('DROP TABLE `' . DB_PREFIX . 'vkm_log_export`;');
 		
-						
+		//создаём таблицу vkm_log_export
 		createrTableLog($this, DB_PREFIX);
+		
+		//получаем столбцы таблицы
 		$r = $this->db->query('SHOW COLUMNS FROM `'.$tablePref.'vkm_log_export`');
 		foreach ($r->rows as $v) {
 			$arRows[$v['Field']] = $v['Field'];
 		}
+		
+		//переносим данные из старой vkm_log_export в новую vkm_log_export
 		$this->db->query('INSERT INTO `' . DB_PREFIX . 'vkm_log_export` ('.implode(',', $arRows).')
 							SELECT '.implode(',', $arRows).' FROM `'.$tablePref.'vkm_log_export`;');
-		
+		//удаляем старую таблицу vkm_log_export
 		$this->db->query('DROP TABLE `' . $tablePref . 'vkm_log_export`;');
 	}
 	
